@@ -124,9 +124,13 @@ STOPWORDS = {
 }
 
 
-def _extract_keywords_from_question(question: str, max_keywords: int = 6) -> list[str]:
-    tokens = re.findall(r"\b\w+\b", question.lower())
-    candidates = [t for t in tokens if t not in STOPWORDS and len(t) > 2]
+def _extract_keywords_from_question(
+    question: str,
+    max_keywords: int = 6,
+    min_token_length: int = 2,
+) -> list[str]:
+    tokens = re.findall(r"[a-z]+", question.lower())
+    candidates = [t for t in tokens if t not in STOPWORDS and len(t) >= min_token_length]
     # preserve order and dedupe
     unique = list(dict.fromkeys(candidates))
     return unique[:max_keywords]
