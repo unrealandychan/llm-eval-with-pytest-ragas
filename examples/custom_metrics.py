@@ -21,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 from rich.console import Console
 
 from llm_eval.client import get_client
-from llm_eval.metrics import MetricResult
+from llm_eval.metrics import MetricResult, run_agentic_workflow
 
 console = Console()
 
@@ -197,6 +197,13 @@ This avoids loading the entire sequence into memory.
 
     result = composite_eval(question=question, answer=answer, contexts=contexts)
     console.print(result)
+
+    # Agentic no-reference workflow demo
+    console.print("\n[bold]Agentic No-Reference Workflow:[/bold]")
+    agentic = run_agentic_workflow(question=question, answer=answer, contexts=contexts)
+    console.print(f"  {agentic}")
+    for step in agentic.steps:
+        console.print(f"  - {step}")
 
     # LLM-as-judge demo
     console.print("\n[bold]LLM-as-Judge:[/bold]")

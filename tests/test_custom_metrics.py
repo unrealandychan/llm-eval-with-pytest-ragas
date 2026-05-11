@@ -135,6 +135,53 @@ class TestOverallScore:
         assert overall_score([]) == 0.0
 
 
+class TestAgenticNoReferenceWorkflow:
+    def test_question_coverage_from_question_terms(self):
+        from llm_eval.metrics import question_coverage
+
+        question = "What is Python GIL and why does it exist?"
+        answer = "The Python GIL exists to protect object access and simplify memory management."
+        result = question_coverage(question=question, answer=answer, threshold=0.3)
+        assert result.passed
+        assert result.score > 0.0
+
+    def test_appropriate_uncertainty_for_insufficient_context(self):
+        from llm_eval.metrics import appropriate_uncertainty
+
+        answer = "I don't know because there is not enough information."
+        contexts = ["Short context only."]
+        result = appropriate_uncertainty(answer=answer, contexts=contexts, min_context_words=20)
+        assert result.passed
+
+    def test_run_agentic_workflow(self):
+        from llm_eval.metrics import run_agentic_workflow
+
+        question = "How do pytest fixtures work?"
+        contexts = [
+            "pytest fixtures are reusable setup functions declared with @pytest.fixture and "
+            "injected into tests by argument name. Fixture scopes include function, class, "
+            "module, package, and session."
+        ]
+        answer = (
+            "pytest fixtures are reusable setup helpers marked with @pytest.fixture. "
+            "They are injected by argument name and can use scopes like function, module, "
+            "or session."
+        )
+
+        result = run_agentic_workflow(question=question, answer=answer, contexts=contexts)
+        step_names = {step.name for step in result.steps}
+        required_steps = {
+            "response_length",
+            "question_coverage",
+            "context_grounding",
+            "appropriate_uncertainty",
+        }
+        assert len(result.steps) >= len(required_steps)
+        assert required_steps <= step_names
+        assert result.overall_score >= 0.6
+        assert result.passed
+
+
 # ---------------------------------------------------------------------------
 # Dataset validation tests
 # ---------------------------------------------------------------------------

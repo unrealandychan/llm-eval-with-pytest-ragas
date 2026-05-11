@@ -134,6 +134,36 @@ result = context_grounding(answer, contexts, threshold=0.3)
 
 ---
 
+## Agentic Workflow for No Explicit Answer
+
+When you do not have a trusted reference answer (`ground_truth`), evaluate with
+an agentic multi-step quality gate:
+
+1. `response_length_ok` — basic answer sanity
+2. `question_coverage` — answer addresses key concepts in the question
+3. `context_grounding` — answer remains tied to retrieved evidence
+4. `appropriate_uncertainty` — refusal/uncertainty behavior is appropriate for context quality
+
+```python
+from llm_eval.metrics import run_agentic_workflow
+
+result = run_agentic_workflow(
+    question=question,
+    answer=answer,
+    contexts=contexts,
+    threshold=0.6,
+)
+
+print(result.overall_score, result.passed)
+for step in result.steps:
+    print(step)
+```
+
+This pattern is especially useful for early-stage agentic systems where labeled
+gold answers are expensive or unavailable.
+
+---
+
 ## Choosing Thresholds
 
 | Use Case | Faithfulness | Answer Relevancy | Context Recall |

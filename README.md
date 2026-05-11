@@ -30,6 +30,12 @@ assert response == ???  # 🤷 LLMs are non-deterministic!
 
 The answer: **don't compare strings — measure quality**.
 
+When you do **not** have an explicit reference answer, use an
+**agentic no-reference workflow** that evaluates:
+- whether the answer covers the question intent,
+- whether it stays grounded in retrieved context,
+- whether uncertainty/refusal behavior is appropriate for the context quality.
+
 ---
 
 ## 🧪 What is RAGAS?
@@ -125,6 +131,25 @@ Context Recall = 1/3 = 0.33 ❌ → Fix your retriever!
 
 **Threshold:** ≥ 0.7
 
+### Agentic No-Reference Workflow — "How do we evaluate with no explicit answer?"
+
+Sometimes you only have:
+- the user question,
+- retrieved context,
+- model output,
+
+but no trusted `ground_truth`.
+
+In that case, this repo now includes `run_agentic_workflow(...)`, a multi-step
+quality gate built from deterministic checks:
+
+1. **Response sanity** (length)
+2. **Question coverage** (key terms from question appear in answer)
+3. **Context grounding** (answer tokens overlap with retrieved context)
+4. **Appropriate uncertainty** (refusal behavior matches context sufficiency)
+
+This gives a robust baseline for CI even before you curate explicit labels.
+
 ---
 
 ## 🗂 Project Structure
@@ -134,7 +159,7 @@ llm-eval-with-pytest-ragas/
 ├── src/llm_eval/
 │   ├── client.py          # Unified LLM client (OpenAI, Anthropic, Mock)
 │   ├── rag_pipeline.py    # Simple RAG pipeline to evaluate
-│   └── metrics.py         # Heuristic metrics (no API needed)
+│   └── metrics.py         # Heuristic + agentic no-reference metrics
 │
 ├── tests/
 │   ├── conftest.py              # pytest fixtures (dataset, LLM client, RAGAS)
@@ -264,6 +289,19 @@ def my_metric(answer: str) -> MetricResult:
         passed=has_example,
         details="Found code block" if has_example else "Missing code example",
     )
+```
+
+### No-reference (agentic) pattern
+
+```python
+from llm_eval.metrics import run_agentic_workflow
+
+result = run_agentic_workflow(
+    question=item["question"],
+    answer=item["answer"],
+    contexts=item["contexts"],
+)
+assert result.passed, f"Agentic score too low: {result.overall_score:.2f}"
 ```
 
 ---

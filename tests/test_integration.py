@@ -14,6 +14,8 @@ from __future__ import annotations
 
 import pytest
 
+MIN_ACCEPTABLE_AGENTIC_SCORE = 0.4
+
 
 @pytest.mark.integration
 def test_rag_pipeline_returns_result(rag_pipeline):
@@ -68,6 +70,29 @@ def test_rag_pipeline_answer_quality(rag_pipeline, small_qa_data):
     avg_score = sum(all_scores) / len(all_scores)
     assert avg_score >= 0.5, (
         f"Average quality score too low: {avg_score:.2f}\n"
+        f"Per-question scores: {[f'{s:.2f}' for s in all_scores]}"
+    )
+
+
+@pytest.mark.integration
+def test_rag_pipeline_agentic_no_reference_quality(rag_pipeline, small_qa_data):
+    """Run the agentic no-reference workflow and ensure it provides stable quality gates."""
+    from llm_eval.metrics import run_agentic_workflow
+
+    results = rag_pipeline.run_batch(small_qa_data)
+    all_scores = []
+
+    for rag_result in results:
+        evaluation = run_agentic_workflow(
+            question=rag_result.question,
+            answer=rag_result.answer,
+            contexts=rag_result.contexts,
+        )
+        all_scores.append(evaluation.overall_score)
+
+    avg_score = sum(all_scores) / len(all_scores)
+    assert avg_score >= MIN_ACCEPTABLE_AGENTIC_SCORE, (
+        f"Average agentic score too low: {avg_score:.2f}\n"
         f"Per-question scores: {[f'{s:.2f}' for s in all_scores]}"
     )
 

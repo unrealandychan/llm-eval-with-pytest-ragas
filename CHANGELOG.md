@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Two-tier SQLite memory layer (`src/llm_eval/memory.py`):
+  - `ShortTermMemory` — in-process circular buffer for recent conversation turns
+  - `LongTermMemory` — SQLite-backed persistent store (conversation turns, eval results, facts)
+  - `MemoryStore` — unified API wrapping both tiers; supports context-manager usage
+- Optional `memory=` parameter on `RAGPipeline`: automatically records user/assistant turns
+- `tests/test_memory.py` — full test coverage of both memory tiers and pipeline integration
+- `.gitignore` updated to exclude `*.db`, `*.db-shm`, `*.db-wal`, and `memory_db/`
+
 ## [0.1.0] - 2026-05-11
 
 ### Added

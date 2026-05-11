@@ -23,6 +23,18 @@ class MetricResult:
         return f"{status} [{self.name}] score={self.score:.3f} | {self.details}"
 
 
+@dataclass
+class AgenticEvalResult:
+    steps: list[MetricResult]
+    overall_score: float
+    passed: bool
+    summary: str = ""
+
+    def __repr__(self) -> str:  # noqa: D105
+        status = "✅ PASS" if self.passed else "❌ FAIL"
+        return f"{status} [agentic_no_reference] score={self.overall_score:.3f} | {self.summary}"
+
+
 # ---------------------------------------------------------------------------
 # Length metrics
 # ---------------------------------------------------------------------------
@@ -83,6 +95,46 @@ def no_explicit_refusal(answer: str) -> MetricResult:
 # Keyword coverage
 # ---------------------------------------------------------------------------
 
+STOPWORDS = {
+    "the",
+    "a",
+    "an",
+    "is",
+    "in",
+    "it",
+    "of",
+    "to",
+    "and",
+    "or",
+    "for",
+    "with",
+    "what",
+    "how",
+    "why",
+    "when",
+    "where",
+    "which",
+    "who",
+    "does",
+    "do",
+    "are",
+    "be",
+    "this",
+    "that",
+}
+
+
+def _extract_keywords_from_question(
+    question: str,
+    max_keywords: int = 6,
+    min_token_length: int = 2,
+) -> list[str]:
+    tokens = re.findall(r"[a-z0-9]+(?:-[a-z0-9]+)*", question.lower())
+    candidates = [t for t in tokens if t not in STOPWORDS and len(t) >= min_token_length]
+    # preserve order and dedupe
+    unique = list(dict.fromkeys(candidates))
+    return unique[:max_keywords]
+
 
 def keyword_coverage(answer: str, keywords: list[str], threshold: float = 0.5) -> MetricResult:
     """
@@ -99,6 +151,22 @@ def keyword_coverage(answer: str, keywords: list[str], threshold: float = 0.5) -
         score=score,
         passed=passed,
         details=f"covered {len(hits)}/{len(keywords)} keywords: {hits}",
+    )
+
+
+def question_coverage(question: str, answer: str, threshold: float = 0.4) -> MetricResult:
+    """
+    No-reference check: does the answer cover key terms from the question?
+
+    Useful when no explicit ground-truth answer is available.
+    """
+    keywords = _extract_keywords_from_question(question)
+    result = keyword_coverage(answer=answer, keywords=keywords, threshold=threshold)
+    return MetricResult(
+        name="question_coverage",
+        score=result.score,
+        passed=result.passed,
+        details=f"question_keywords={keywords} | {result.details}",
     )
 
 
@@ -134,6 +202,100 @@ def context_grounding(answer: str, contexts: list[str], threshold: float = 0.3) 
         score=overlap,
         passed=passed,
         details=f"overlap={overlap:.2%} (threshold={threshold:.0%})",
+    )
+
+
+def context_sufficiency(contexts: list[str], min_context_words: int = 20) -> MetricResult:
+    """
+    Heuristic for whether retrieved context appears substantial enough to answer.
+
+    Note: this is a simple word-count check and does not assess semantic relevance.
+    """
+    total_words = sum(len(c.split()) for c in contexts)
+    score = min(total_words / min_context_words, 1.0)
+    passed = total_words >= min_context_words
+    return MetricResult(
+        name="context_sufficiency",
+        score=score,
+        passed=passed,
+        details=f"context_words={total_words} (minimum={min_context_words})",
+    )
+
+
+def appropriate_uncertainty(
+    answer: str,
+    contexts: list[str],
+    min_context_words: int = 20,
+) -> MetricResult:
+    """
+    Agentic guardrail:
+    - If context is sufficient, explicit refusal should fail.
+    - If context is insufficient, explicit uncertainty is acceptable.
+    """
+    sufficiency = context_sufficiency(contexts, min_context_words=min_context_words)
+    refusal = no_explicit_refusal(answer)
+
+    if sufficiency.passed and refusal.passed:
+        return MetricResult(
+            name="appropriate_uncertainty",
+            score=1.0,
+            passed=True,
+            details="context was sufficient and answer did not refuse",
+        )
+    if sufficiency.passed and not refusal.passed:
+        return MetricResult(
+            name="appropriate_uncertainty",
+            score=0.0,
+            passed=False,
+            details="context was sufficient but answer refused",
+        )
+    if not sufficiency.passed and not refusal.passed:
+        return MetricResult(
+            name="appropriate_uncertainty",
+            score=1.0,
+            passed=True,
+            details="context was insufficient and answer appropriately expressed uncertainty",
+        )
+    return MetricResult(
+        name="appropriate_uncertainty",
+        score=0.6,
+        passed=True,
+        details="context was insufficient and answer still attempted a response",
+    )
+
+
+def run_agentic_workflow(
+    question: str,
+    answer: str,
+    contexts: list[str],
+    threshold: float = 0.6,
+) -> AgenticEvalResult:
+    """
+    Agentic no-reference workflow for eval when no explicit answer exists.
+
+    Steps:
+    1. Sanity: response length
+    2. Coverage: answer addresses key concepts from the question
+    3. Grounding: answer aligns with retrieved context
+    4. Uncertainty policy: refusal behavior matches context sufficiency
+    """
+    steps = [
+        response_length_ok(answer),
+        question_coverage(question=question, answer=answer),
+        context_grounding(answer=answer, contexts=contexts),
+        appropriate_uncertainty(answer=answer, contexts=contexts),
+    ]
+    score = overall_score(steps)
+    passed = score >= threshold
+    summary = (
+        f"steps_passed={sum(1 for s in steps if s.passed)}/{len(steps)} "
+        f"threshold={threshold:.2f}"
+    )
+    return AgenticEvalResult(
+        steps=steps,
+        overall_score=score,
+        passed=passed,
+        summary=summary,
     )
 
 
