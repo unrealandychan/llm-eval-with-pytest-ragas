@@ -6,13 +6,27 @@ plug RAGAS evaluation into a real pipeline.
 
 Architecture:
     query → retrieve(context) → augmented_prompt → LLM → answer
+
+Memory integration (optional)::
+
+    from llm_eval.memory import MemoryStore
+    from llm_eval.rag_pipeline import RAGPipeline
+
+    mem = MemoryStore("eval_memory.db")
+    pipeline = RAGPipeline(memory=mem)
+    result = pipeline.run("What is the GIL?")
+    # Conversation turns are automatically recorded in both memory tiers.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from llm_eval.client import Message, get_client
+
+if TYPE_CHECKING:
+    from llm_eval.memory import MemoryStore
 
 # ---------------------------------------------------------------------------
 # Data structures
@@ -124,15 +138,29 @@ class RAGPipeline:
     """
     End-to-end RAG pipeline wiring together retrieval and generation.
 
-    Example:
+    Example (no memory)::
+
         pipeline = RAGPipeline()
         result = pipeline.run("What is the GIL?")
         print(result.answer)
+
+    Example (with persistent memory)::
+
+        from llm_eval.memory import MemoryStore
+        mem = MemoryStore("eval_memory.db")
+        pipeline = RAGPipeline(memory=mem)
+        result = pipeline.run("What is the GIL?")
     """
 
-    def __init__(self, retriever: SimpleRetriever | None = None, provider: str | None = None):
+    def __init__(
+        self,
+        retriever: SimpleRetriever | None = None,
+        provider: str | None = None,
+        memory: MemoryStore | None = None,
+    ):
         self.retriever = retriever or SimpleRetriever()
         self.llm = get_client(provider=provider)  # type: ignore[arg-type]
+        self.memory = memory
 
     def run(self, question: str, ground_truth: str = "", top_k: int = 2) -> RAGResult:
         docs = self.retriever.retrieve(question, top_k=top_k)
@@ -143,11 +171,20 @@ class RAGPipeline:
         )
         user_prompt = f"Context:\n{context_block}\n\nQuestion: {question}"
 
-        messages = [
-            Message(role="system", content=SYSTEM_PROMPT),
-            Message(role="user", content=user_prompt),
-        ]
+        # Optionally prepend recent conversation turns from short-term memory.
+        messages: list[Message] = [Message(role="system", content=SYSTEM_PROMPT)]
+        if self.memory:
+            for turn in self.memory.get_recent_turns():
+                if turn.role in ("user", "assistant"):
+                    messages.append(Message(role=turn.role, content=turn.content))  # type: ignore[arg-type]
+
+        messages.append(Message(role="user", content=user_prompt))
         response = self.llm.chat(messages)
+
+        # Record the exchange in memory (both tiers).
+        if self.memory:
+            self.memory.add_turn("user", question)
+            self.memory.add_turn("assistant", response.content)
 
         return RAGResult(
             question=question,

@@ -8,13 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Agentic no-reference evaluation workflow (`run_agentic_workflow`) for cases without explicit answers
-- New no-reference metrics: `question_coverage`, `context_sufficiency`, and `appropriate_uncertainty`
-- Tests for agentic workflow behavior in custom-metric and integration test suites
-- Example updates showing agentic workflow usage in basic, RAG, and custom metric demos
-
-### Changed
-- Documentation updates across README and docs to explain evaluating without `ground_truth`
+- Two-tier SQLite memory layer (`src/llm_eval/memory.py`):
+  - `ShortTermMemory` — in-process circular buffer for recent conversation turns
+  - `LongTermMemory` — SQLite-backed persistent store (conversation turns, eval results, facts)
+  - `MemoryStore` — unified API wrapping both tiers; supports context-manager usage
+- Optional `memory=` parameter on `RAGPipeline`: automatically records user/assistant turns
+- `tests/test_memory.py` — full test coverage of both memory tiers and pipeline integration
+- `.gitignore` updated to exclude `*.db`, `*.db-shm`, `*.db-wal`, and `memory_db/`
 
 ## [0.1.0] - 2026-05-11
 

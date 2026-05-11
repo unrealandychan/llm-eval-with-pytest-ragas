@@ -78,3 +78,9 @@ Thumbs.db
 .env
 *.log
 eval_results/
+
+# Memory / SQLite databases (generated at runtime, not version-controlled)
+*.db
+*.db-shm
+*.db-wal
+memory_db/
