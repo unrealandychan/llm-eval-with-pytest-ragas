@@ -32,6 +32,8 @@ from llm_eval.rag_pipeline import RAGPipeline, SimpleRetriever
 
 console = Console()
 DATASETS_DIR = Path(__file__).parent.parent / "datasets"
+MIN_HEURISTIC_SCORE = 0.7
+MIN_AGENTIC_SCORE = 0.6
 
 
 def main():
@@ -80,7 +82,11 @@ def main():
     table.add_column("Status", width=10)
 
     for i, r in enumerate(all_results, 1):
-        status = "✅" if r["score"] >= 0.7 and r["agentic_score"] >= 0.6 else "❌"
+        status = (
+            "✅"
+            if r["score"] >= MIN_HEURISTIC_SCORE and r["agentic_score"] >= MIN_AGENTIC_SCORE
+            else "❌"
+        )
         table.add_row(
             str(i),
             r["question"],

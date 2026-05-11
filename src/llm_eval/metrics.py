@@ -205,20 +205,20 @@ def context_grounding(answer: str, contexts: list[str], threshold: float = 0.3) 
     )
 
 
-def context_sufficiency(contexts: list[str], min_words: int = 20) -> MetricResult:
+def context_sufficiency(contexts: list[str], min_context_words: int = 20) -> MetricResult:
     """
     Heuristic for whether retrieved context appears substantial enough to answer.
 
     Note: this is a simple word-count check and does not assess semantic relevance.
     """
     total_words = sum(len(c.split()) for c in contexts)
-    score = min(total_words / min_words, 1.0)
-    passed = total_words >= min_words
+    score = min(total_words / min_context_words, 1.0)
+    passed = total_words >= min_context_words
     return MetricResult(
         name="context_sufficiency",
         score=score,
         passed=passed,
-        details=f"context_words={total_words} (minimum={min_words})",
+        details=f"context_words={total_words} (minimum={min_context_words})",
     )
 
 
@@ -232,7 +232,7 @@ def appropriate_uncertainty(
     - If context is sufficient, explicit refusal should fail.
     - If context is insufficient, explicit uncertainty is acceptable.
     """
-    sufficiency = context_sufficiency(contexts, min_words=min_context_words)
+    sufficiency = context_sufficiency(contexts, min_context_words=min_context_words)
     refusal = no_explicit_refusal(answer)
 
     if sufficiency.passed and refusal.passed:

@@ -170,13 +170,13 @@ class TestAgenticNoReferenceWorkflow:
 
         result = run_agentic_workflow(question=question, answer=answer, contexts=contexts)
         step_names = {step.name for step in result.steps}
-        assert len(result.steps) >= 4
         required_steps = {
             "response_length",
             "question_coverage",
             "context_grounding",
             "appropriate_uncertainty",
         }
+        assert len(result.steps) >= len(required_steps)
         assert required_steps <= step_names
         assert result.overall_score >= 0.6
         assert result.passed
