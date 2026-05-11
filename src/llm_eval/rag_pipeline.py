@@ -174,7 +174,7 @@ class RAGPipeline:
         # Optionally prepend recent conversation turns from short-term memory.
         messages: list[Message] = [Message(role="system", content=SYSTEM_PROMPT)]
         if self.memory:
-            for turn in self.memory.get_recent_turns():
+            for turn in self.memory.get_recent_turns(n=10):
                 if turn.role in ("user", "assistant"):
                     messages.append(Message(role=turn.role, content=turn.content))  # type: ignore[arg-type]
 

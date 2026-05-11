@@ -101,7 +101,7 @@ def main():
     avg_agentic = sum(r["agentic_score"] for r in all_results) / len(all_results)
     console.print(f"\n[bold]Average Score:[/bold] {avg:.3f}")
     console.print(f"[bold]Average Agentic Score:[/bold] {avg_agentic:.3f}")
-    passed = sum(1 for r in all_results if r["score"] >= 0.7)
+    passed = sum(1 for r in all_results if r["score"] >= MIN_HEURISTIC_SCORE)
     console.print(f"[bold]Passed:[/bold] {passed}/{len(all_results)}")
 
 
