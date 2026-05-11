@@ -129,7 +129,7 @@ def _extract_keywords_from_question(
     max_keywords: int = 6,
     min_token_length: int = 2,
 ) -> list[str]:
-    tokens = re.findall(r"[a-z]+", question.lower())
+    tokens = re.findall(r"[a-z0-9]+(?:-[a-z0-9]+)*", question.lower())
     candidates = [t for t in tokens if t not in STOPWORDS and len(t) >= min_token_length]
     # preserve order and dedupe
     unique = list(dict.fromkeys(candidates))
@@ -206,7 +206,11 @@ def context_grounding(answer: str, contexts: list[str], threshold: float = 0.3) 
 
 
 def context_sufficiency(contexts: list[str], min_words: int = 20) -> MetricResult:
-    """Heuristic for whether retrieved context appears substantial enough to answer."""
+    """
+    Heuristic for whether retrieved context appears substantial enough to answer.
+
+    Note: this is a simple word-count check and does not assess semantic relevance.
+    """
     total_words = sum(len(c.split()) for c in contexts)
     score = min(total_words / min_words, 1.0)
     passed = total_words >= min_words

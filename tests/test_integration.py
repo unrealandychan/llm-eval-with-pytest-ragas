@@ -14,6 +14,8 @@ from __future__ import annotations
 
 import pytest
 
+MIN_ACCEPTABLE_AGENTIC_SCORE = 0.4
+
 
 @pytest.mark.integration
 def test_rag_pipeline_returns_result(rag_pipeline):
@@ -89,7 +91,7 @@ def test_rag_pipeline_agentic_no_reference_quality(rag_pipeline, small_qa_data):
         all_scores.append(evaluation.overall_score)
 
     avg_score = sum(all_scores) / len(all_scores)
-    assert avg_score >= 0.4, (
+    assert avg_score >= MIN_ACCEPTABLE_AGENTIC_SCORE, (
         f"Average agentic score too low: {avg_score:.2f}\n"
         f"Per-question scores: {[f'{s:.2f}' for s in all_scores]}"
     )
