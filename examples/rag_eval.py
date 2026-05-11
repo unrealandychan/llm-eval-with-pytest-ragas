@@ -81,7 +81,13 @@ def main():
 
     for i, r in enumerate(all_results, 1):
         status = "✅" if r["score"] >= 0.7 and r["agentic_score"] >= 0.6 else "❌"
-        table.add_row(str(i), r["question"], f"{r['score']:.3f}", f"{r['agentic_score']:.3f}", status)
+        table.add_row(
+            str(i),
+            r["question"],
+            f"{r['score']:.3f}",
+            f"{r['agentic_score']:.3f}",
+            status,
+        )
 
     console.print(table)
 

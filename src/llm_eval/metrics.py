@@ -214,7 +214,11 @@ def context_sufficiency(contexts: list[str], min_words: int = 20) -> MetricResul
     )
 
 
-def appropriate_uncertainty(answer: str, contexts: list[str], min_context_words: int = 20) -> MetricResult:
+def appropriate_uncertainty(
+    answer: str,
+    contexts: list[str],
+    min_context_words: int = 20,
+) -> MetricResult:
     """
     Agentic guardrail:
     - If context is sufficient, explicit refusal should fail.
@@ -275,7 +279,10 @@ def run_agentic_workflow(
     ]
     score = overall_score(steps)
     passed = score >= threshold
-    summary = f"steps_passed={sum(1 for s in steps if s.passed)}/{len(steps)} threshold={threshold:.2f}"
+    summary = (
+        f"steps_passed={sum(1 for s in steps if s.passed)}/{len(steps)} "
+        f"threshold={threshold:.2f}"
+    )
     return AgenticEvalResult(
         steps=steps,
         overall_score=score,
