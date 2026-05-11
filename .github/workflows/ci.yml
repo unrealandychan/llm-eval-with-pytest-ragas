@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run RAGAS eval every Monday at 9am UTC
+    - cron: '0 9 * * 1'
+
+jobs:
+  test-fast:
+    name: Fast Tests (no API key)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          pip install -e ".[dev]"
+
+      - name: Run fast tests (mock mode, no API needed)
+        run: |
+          LLM_EVAL_MODE=mock pytest -m "not llm and not ragas" -v --tb=short
+        env:
+          LLM_EVAL_MODE: mock
+
+      - name: Run integration tests in mock mode
+        run: |
+          LLM_EVAL_MODE=mock pytest tests/test_integration.py -v --tb=short
+        env:
+          LLM_EVAL_MODE: mock
+
+  test-ragas:
+    name: RAGAS Evaluation (with API key)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    needs: test-fast
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Run RAGAS evaluation
+        run: pytest -m ragas -v --tb=short
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install ruff
+      - run: ruff check src/ tests/ examples/

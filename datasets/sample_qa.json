@@ -1,0 +1,82 @@
+[
+  {
+    "question": "What is the Python GIL and why does it exist?",
+    "contexts": [
+      "Python's GIL (Global Interpreter Lock) is a mutex that protects access to Python objects, preventing multiple threads from executing Python bytecodes simultaneously. The GIL makes it easier to integrate with non-thread-safe C libraries and simplifies CPython's memory management, but it limits CPU-bound multithreaded performance."
+    ],
+    "answer": "The GIL is a mutex in CPython that prevents multiple threads from running Python bytecode at the same time. It exists to protect Python's memory management and make C extension integration easier, though it limits parallelism for CPU-bound tasks.",
+    "ground_truth": "The GIL (Global Interpreter Lock) is a mutex in CPython that ensures only one thread executes Python bytecode at a time. It simplifies memory management and C extension compatibility but limits multi-threaded CPU performance."
+  },
+  {
+    "question": "How do pytest fixtures work and what are fixture scopes?",
+    "contexts": [
+      "pytest fixtures are functions that provide a fixed baseline for tests. They are declared with the @pytest.fixture decorator and injected automatically into test functions via argument names. Fixtures support scopes: function, class, module, package, and session, controlling how often they are created and torn down."
+    ],
+    "answer": "pytest fixtures are decorated with @pytest.fixture and automatically injected into test functions by matching argument names. Fixture scopes (function, class, module, package, session) control how frequently the fixture is set up and torn down.",
+    "ground_truth": "pytest fixtures are @pytest.fixture-decorated functions injected into tests via argument names. Scopes (function, class, module, package, session) determine fixture lifecycle — session scope fixtures run only once per test session."
+  },
+  {
+    "question": "What are Python type hints and do they affect runtime performance?",
+    "contexts": [
+      "Python type hints (PEP 484) allow you to annotate variables and function signatures with expected types. They are not enforced at runtime by default, but tools like mypy, pyright, and ruff can catch type errors statically. Type hints improve readability and IDE auto-complete without affecting performance."
+    ],
+    "answer": "Type hints are annotations that specify expected types for variables and functions. They are not enforced at runtime, so they don't affect performance, but static analysis tools like mypy can use them to catch type errors before code runs.",
+    "ground_truth": "Python type hints (PEP 484) annotate code with expected types. They are not enforced at runtime and do not impact performance. Tools like mypy and pyright use them for static type checking."
+  },
+  {
+    "question": "What are Python generators and when should I use them?",
+    "contexts": [
+      "Generators in Python are functions that use 'yield' to return values lazily. They implement the iterator protocol without building the entire sequence in memory. Generator expressions (x for x in iterable) are a concise alternative. Use generators for large datasets or infinite sequences."
+    ],
+    "answer": "Generators are functions using 'yield' to produce values lazily, one at a time, without storing the full sequence in memory. Use them for large datasets, file streaming, or infinite sequences.",
+    "ground_truth": "Generators use 'yield' to produce values lazily. They are memory-efficient because they don't build the full sequence at once. Best used for large datasets and infinite sequences."
+  },
+  {
+    "question": "What metrics does RAGAS measure for RAG pipelines?",
+    "contexts": [
+      "RAGAS (Retrieval Augmented Generation Assessment) is an open-source framework for evaluating RAG pipelines. Core metrics: Faithfulness measures if the answer is grounded in the retrieved context. Answer Relevancy measures how relevant the answer is to the question. Context Recall measures how much of the ground truth is covered by the retrieved context."
+    ],
+    "answer": "RAGAS measures: Faithfulness (is the answer grounded in context?), Answer Relevancy (is the answer on-topic?), and Context Recall (does the retrieved context cover the ground truth?).",
+    "ground_truth": "RAGAS core metrics are: Faithfulness (answer grounded in context), Answer Relevancy (answer addresses the question), and Context Recall (retrieved context covers the ground truth)."
+  },
+  {
+    "question": "What is the difference between a list and a tuple in Python?",
+    "contexts": [
+      "Lists in Python are mutable ordered sequences created with square brackets []. Tuples are immutable ordered sequences created with parentheses (). Because tuples are immutable, they are slightly faster for iteration and can be used as dictionary keys, unlike lists."
+    ],
+    "answer": "Lists are mutable (can be changed) and use [], while tuples are immutable (cannot be changed) and use (). Tuples are slightly faster and can be used as dict keys.",
+    "ground_truth": "Lists are mutable ordered sequences; tuples are immutable ordered sequences. Tuples are hashable and can serve as dictionary keys, while lists cannot."
+  },
+  {
+    "question": "How does Python's asyncio event loop work?",
+    "contexts": [
+      "Python's asyncio module provides an event loop that runs coroutines — functions defined with 'async def'. The event loop schedules coroutines and switches between them at 'await' points, enabling concurrent I/O without threads. This is cooperative multitasking: coroutines must yield control explicitly."
+    ],
+    "answer": "asyncio's event loop runs async coroutines and switches between them at 'await' points. It's cooperative multitasking — coroutines must explicitly yield control, making it ideal for I/O-bound work.",
+    "ground_truth": "asyncio uses an event loop to run coroutines concurrently. Switching happens at 'await' points (cooperative multitasking). It handles many I/O-bound tasks efficiently without multi-threading."
+  },
+  {
+    "question": "What is a Python decorator and how do you write one?",
+    "contexts": [
+      "A Python decorator is a function that wraps another function to extend its behaviour without modifying its source code. Decorators use the '@' syntax. A simple decorator takes a function as an argument and returns a new function. The functools.wraps helper preserves the original function's metadata."
+    ],
+    "answer": "A decorator is a function that wraps another function to add behaviour. Using '@decorator_name' syntax, the decorator receives the original function and returns a modified version. Use functools.wraps to preserve docstrings and names.",
+    "ground_truth": "Decorators wrap functions to extend behaviour using '@' syntax. They take a function, return a new function, and functools.wraps preserves the wrapped function's metadata."
+  },
+  {
+    "question": "What is the difference between 'is' and '==' in Python?",
+    "contexts": [
+      "'==' checks value equality — whether two objects have the same value. 'is' checks identity — whether two variables point to the exact same object in memory. For small integers and interned strings Python may cache objects, making 'is' return True unexpectedly, so always use '==' for value comparisons."
+    ],
+    "answer": "'==' compares values; 'is' compares object identity (memory address). You should almost always use '==' for value comparison. 'is' is best reserved for checking against singletons like None.",
+    "ground_truth": "'==' tests value equality; 'is' tests object identity. Use '==' for value comparisons and 'is' only for singletons (None, True, False)."
+  },
+  {
+    "question": "How does Python manage memory with reference counting and garbage collection?",
+    "contexts": [
+      "CPython uses reference counting as its primary memory management strategy: each object tracks how many references point to it; when the count reaches zero the memory is freed immediately. A cyclic garbage collector runs periodically to handle reference cycles (e.g. objects that reference each other) which reference counting alone cannot free."
+    ],
+    "answer": "CPython manages memory primarily via reference counting — memory is freed when an object's reference count reaches zero. A supplementary cyclic garbage collector handles circular references that reference counting can't break.",
+    "ground_truth": "CPython uses reference counting (freeing memory when refcount hits zero) plus a cyclic garbage collector to handle reference cycles."
+  }
+]
