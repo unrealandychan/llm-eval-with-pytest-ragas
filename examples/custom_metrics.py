@@ -13,13 +13,14 @@ Run:
 from __future__ import annotations
 
 import sys
-from pathlib import Path
 from dataclasses import dataclass
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from rich.console import Console
-from llm_eval.client import get_client, Message
+
+from llm_eval.client import get_client
 from llm_eval.metrics import MetricResult
 
 console = Console()
@@ -129,7 +130,10 @@ class CompositeEvalResult:
     passed: bool
 
     def __str__(self) -> str:
-        lines = [f"Composite Score: {self.composite_score:.3f} ({'PASS' if self.passed else 'FAIL'})"]
+        lines = [
+            f"Composite Score: {self.composite_score:.3f} "
+            f"({'PASS' if self.passed else 'FAIL'})"
+        ]
         for m in self.individual:
             lines.append(f"  {m}")
         return "\n".join(lines)
@@ -142,7 +146,7 @@ def composite_eval(
     threshold: float = 0.6,
 ) -> CompositeEvalResult:
     """Run multiple metrics and combine into a single pass/fail decision."""
-    from llm_eval.metrics import context_grounding, response_length_ok, no_explicit_refusal
+    from llm_eval.metrics import context_grounding, no_explicit_refusal, response_length_ok
 
     metrics = [
         response_length_ok(answer),

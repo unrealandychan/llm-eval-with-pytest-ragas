@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # Fast tests — no API key required
 # ---------------------------------------------------------------------------
@@ -108,7 +107,7 @@ def test_all_ragas_metrics(ragas_dataset, ragas_llm):
     """
     try:
         from ragas import evaluate
-        from ragas.metrics import faithfulness, answer_relevancy, context_recall
+        from ragas.metrics import answer_relevancy, context_recall, faithfulness
     except ImportError:
         pytest.skip("ragas not installed")
 

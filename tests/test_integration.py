@@ -52,7 +52,7 @@ def test_rag_pipeline_batch(rag_pipeline, small_qa_data):
 @pytest.mark.integration
 def test_rag_pipeline_answer_quality(rag_pipeline, small_qa_data):
     """Run all custom metrics on pipeline outputs and check overall quality."""
-    from llm_eval.metrics import run_all_metrics, overall_score
+    from llm_eval.metrics import overall_score, run_all_metrics
 
     results = rag_pipeline.run_batch(small_qa_data)
     all_scores = []
@@ -80,15 +80,18 @@ def test_rag_pipeline_with_real_llm(real_llm_client):
 
     Skipped automatically if no API key is configured.
     """
-    from llm_eval.rag_pipeline import RAGPipeline, SimpleRetriever
     from llm_eval.metrics import context_grounding
+    from llm_eval.rag_pipeline import RAGPipeline, SimpleRetriever
 
     pipeline = RAGPipeline(retriever=SimpleRetriever())
     pipeline.llm = real_llm_client
 
     result = pipeline.run(
         "What is the Python GIL?",
-        ground_truth="The GIL prevents multiple threads from executing Python bytecode simultaneously.",
+        ground_truth=(
+            "The GIL prevents multiple threads from executing "
+            "Python bytecode simultaneously."
+        ),
     )
 
     grounding = context_grounding(result.answer, result.contexts, threshold=0.25)
@@ -115,7 +118,7 @@ def test_retriever_returns_top_k(rag_pipeline):
 @pytest.mark.integration
 def test_client_factory_mock_mode(monkeypatch):
     """get_client() should return MockLLMClient when LLM_EVAL_MODE=mock."""
-    from llm_eval.client import get_client, MockLLMClient
+    from llm_eval.client import MockLLMClient, get_client
 
     monkeypatch.setenv("LLM_EVAL_MODE", "mock")
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
@@ -128,7 +131,7 @@ def test_client_factory_mock_mode(monkeypatch):
 @pytest.mark.integration
 def test_mock_client_returns_response():
     """MockLLMClient should return a predictable response."""
-    from llm_eval.client import MockLLMClient, Message
+    from llm_eval.client import Message, MockLLMClient
 
     client = MockLLMClient()
     response = client.chat([Message(role="user", content="What is Python?")])

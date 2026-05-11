@@ -83,7 +83,7 @@ def llm_client():
 @pytest.fixture(scope="session")
 def real_llm_client():
     """Skip this fixture (and any test using it) when no API key is available."""
-    from llm_eval.client import get_client, MockLLMClient
+    from llm_eval.client import MockLLMClient, get_client
 
     client = get_client()
     if isinstance(client, MockLLMClient):

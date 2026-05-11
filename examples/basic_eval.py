@@ -17,8 +17,8 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from llm_eval.client import MockLLMClient, Message
-from llm_eval.metrics import run_all_metrics, overall_score
+from llm_eval.client import MockLLMClient
+from llm_eval.metrics import overall_score, run_all_metrics
 
 console = Console()
 
@@ -35,12 +35,9 @@ def main():
     contexts = [
         "Python's GIL (Global Interpreter Lock) is a mutex that protects access to Python "
         "objects, preventing multiple threads from executing Python bytecodes simultaneously. "
-        "The GIL simplifies CPython's memory management but limits CPU-bound multithreaded performance."
+        "The GIL simplifies CPython's memory management but limits "
+        "CPU-bound multithreaded performance."
     ]
-    ground_truth = (
-        "The GIL is a mutex in CPython that ensures only one thread executes Python bytecode "
-        "at a time. It simplifies memory management and C extension compatibility."
-    )
 
     # Generate answer using mock client (or real if API key set)
     client = MockLLMClient()

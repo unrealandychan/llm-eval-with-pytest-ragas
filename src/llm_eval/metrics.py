@@ -123,7 +123,9 @@ def context_grounding(answer: str, contexts: list[str], threshold: float = 0.3) 
     context_tokens -= stopwords
 
     if not answer_tokens:
-        return MetricResult(name="context_grounding", score=0.0, passed=False, details="empty answer")
+        return MetricResult(
+            name="context_grounding", score=0.0, passed=False, details="empty answer"
+        )
 
     overlap = len(answer_tokens & context_tokens) / len(answer_tokens)
     passed = overlap >= threshold

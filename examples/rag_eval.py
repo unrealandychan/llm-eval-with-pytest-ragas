@@ -22,13 +22,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
+from rich import box
 from rich.console import Console
 from rich.progress import track
 from rich.table import Table
-from rich import box
 
+from llm_eval.metrics import overall_score, run_all_metrics
 from llm_eval.rag_pipeline import RAGPipeline, SimpleRetriever
-from llm_eval.metrics import run_all_metrics, overall_score
 
 console = Console()
 DATASETS_DIR = Path(__file__).parent.parent / "datasets"

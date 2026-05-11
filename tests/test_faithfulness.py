@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # Fast tests — no API key required
 # ---------------------------------------------------------------------------
@@ -104,6 +103,7 @@ def test_faithfulness_per_sample(ragas_dataset, ragas_llm):
     try:
         from ragas import evaluate
         from ragas.metrics import faithfulness
+
         from datasets import Dataset
     except ImportError:
         pytest.skip("ragas or datasets not installed")

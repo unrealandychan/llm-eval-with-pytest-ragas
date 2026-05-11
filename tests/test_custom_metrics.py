@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # Metrics module tests
 # ---------------------------------------------------------------------------
@@ -27,7 +26,10 @@ class TestResponseLength:
     def test_normal_answer_passes(self):
         from llm_eval.metrics import response_length_ok
 
-        answer = "Python generators use yield to produce values lazily without storing the full sequence in memory."
+        answer = (
+            "Python generators use yield to produce values lazily "
+            "without storing the full sequence in memory."
+        )
         result = response_length_ok(answer, min_words=5, max_words=100)
         assert result.passed
         assert result.score == 1.0
@@ -81,7 +83,9 @@ class TestKeywordCoverage:
         from llm_eval.metrics import keyword_coverage
 
         answer = "The GIL is a lock."
-        result = keyword_coverage(answer, keywords=["GIL", "mutex", "Python", "thread"], threshold=0.3)
+        result = keyword_coverage(
+            answer, keywords=["GIL", "mutex", "Python", "thread"], threshold=0.3
+        )
         # "GIL" is present → 1/4 = 0.25 < 0.3 → fails
         assert result.score == pytest.approx(0.25)
 
@@ -89,7 +93,9 @@ class TestKeywordCoverage:
         from llm_eval.metrics import keyword_coverage
 
         answer = "Generators use yield and are memory efficient."
-        result = keyword_coverage(answer, keywords=["yield", "memory", "thread", "async"], threshold=0.5)
+        result = keyword_coverage(
+            answer, keywords=["yield", "memory", "thread", "async"], threshold=0.5
+        )
         # yield, memory present → 2/4 = 0.5 ≥ 0.5 → passes
         assert result.passed
 
