@@ -107,3 +107,22 @@ pytest -m "not llm"        # No API calls
 pytest -m "not ragas"      # No RAGAS (faster)
 pytest -m "integration"    # Only integration tests
 ```
+
+## Evaluating Without Explicit Answers
+
+If you do not have `ground_truth` labels yet, use the built-in agentic workflow:
+
+```python
+from llm_eval.metrics import run_agentic_workflow
+
+result = run_agentic_workflow(
+    question="What is the Python GIL?",
+    answer="The GIL is a lock that prevents multiple Python threads from executing bytecode at once.",
+    contexts=["Python's GIL is a mutex preventing simultaneous bytecode execution by threads."],
+)
+
+print(result.overall_score, result.passed)
+```
+
+This gives you deterministic quality gates for CI while you gradually build a
+labeled evaluation dataset.

@@ -27,7 +27,7 @@ from rich.console import Console
 from rich.progress import track
 from rich.table import Table
 
-from llm_eval.metrics import overall_score, run_all_metrics
+from llm_eval.metrics import overall_score, run_agentic_workflow, run_all_metrics
 from llm_eval.rag_pipeline import RAGPipeline, SimpleRetriever
 
 console = Console()
@@ -58,9 +58,15 @@ def main():
             contexts=rag_result.contexts,
         )
         score = overall_score(metrics)
+        agentic = run_agentic_workflow(
+            question=rag_result.question,
+            answer=rag_result.answer,
+            contexts=rag_result.contexts,
+        )
         all_results.append({
             "question": item["question"][:55] + "...",
             "score": score,
+            "agentic_score": agentic.overall_score,
             "metrics": metrics,
             "answer": rag_result.answer[:80] + "...",
         })
@@ -70,16 +76,19 @@ def main():
     table.add_column("#", style="dim", width=4)
     table.add_column("Question", style="cyan", width=55)
     table.add_column("Score", justify="right", width=8)
+    table.add_column("Agentic", justify="right", width=8)
     table.add_column("Status", width=10)
 
     for i, r in enumerate(all_results, 1):
-        status = "✅" if r["score"] >= 0.7 else "❌"
-        table.add_row(str(i), r["question"], f"{r['score']:.3f}", status)
+        status = "✅" if r["score"] >= 0.7 and r["agentic_score"] >= 0.6 else "❌"
+        table.add_row(str(i), r["question"], f"{r['score']:.3f}", f"{r['agentic_score']:.3f}", status)
 
     console.print(table)
 
     avg = sum(r["score"] for r in all_results) / len(all_results)
+    avg_agentic = sum(r["agentic_score"] for r in all_results) / len(all_results)
     console.print(f"\n[bold]Average Score:[/bold] {avg:.3f}")
+    console.print(f"[bold]Average Agentic Score:[/bold] {avg_agentic:.3f}")
     passed = sum(1 for r in all_results if r["score"] >= 0.7)
     console.print(f"[bold]Passed:[/bold] {passed}/{len(all_results)}")
 

@@ -18,7 +18,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 from llm_eval.client import MockLLMClient
-from llm_eval.metrics import overall_score, run_all_metrics
+from llm_eval.metrics import overall_score, run_agentic_workflow, run_all_metrics
 
 console = Console()
 
@@ -51,7 +51,7 @@ def main():
     metrics = run_all_metrics(answer=answer, contexts=contexts, keywords=["GIL", "mutex"])
     score = overall_score(metrics)
 
-    # Display results
+    # Display heuristic metric results
     table = Table(title="Evaluation Results", show_header=True, header_style="bold magenta")
     table.add_column("Metric", style="cyan")
     table.add_column("Score", justify="right")
@@ -69,6 +69,17 @@ def main():
         console.print("[bold green]✅ Evaluation PASSED[/bold green]")
     else:
         console.print("[bold red]❌ Evaluation FAILED[/bold red]")
+
+    # Agentic no-reference workflow (for cases without explicit ground truth answers)
+    agentic = run_agentic_workflow(
+        question=question,
+        answer=answer,
+        contexts=contexts,
+    )
+    console.print(
+        f"\n[bold]Agentic no-reference score:[/bold] {agentic.overall_score:.3f} "
+        f"({'PASS' if agentic.passed else 'FAIL'})"
+    )
 
 
 if __name__ == "__main__":
